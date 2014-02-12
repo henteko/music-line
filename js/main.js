@@ -27,11 +27,16 @@ $(function() {
   var sum = 0;
   var x = 0;
   var y = 0;
-  $canvas.mousedown(function(e) {
+  $canvas.mousedown(tapStart).mousemove(tapMove).mouseup(tapEnd);
+  $canvas.on('touchstart', tapStart).on('touchmove', tapMove).on('touchend', tapEnd);
+
+  function tapStart(e) {
     mouseFlag = true;
     x = e.clientX;
     y = e.clientY;
-  }).mousemove(function(e) {
+  }
+
+  function tapMove(e) {
     if(mouseFlag) {
       sum += 1;
     }
@@ -53,7 +58,9 @@ $(function() {
       x = _x;
       y = _y;
     }
-  }).mouseup(function(e) {
+  }
+
+  function tapEnd(e) {
     mouseFlag = false;
-  });
+  }
 });
