@@ -45,7 +45,7 @@ $(function() {
 
       var source = context.createBufferSource();
       source.buffer = buffer;
-      source.playbackRate.value = (x / 100) + (y / 100);
+      source.playbackRate.value = (x / 1000) + (y / 1000);
       source.connect(context.destination);
       source.noteOn(0);
 

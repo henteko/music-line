@@ -12,7 +12,7 @@ RUN sudo apt-get install -y nodejs
 ADD server.js /opt/music_line/server.js
 ADD index.html /opt/music_line/index.html
 ADD js /opt/music_line/js
-ADD js /opt/music_line/sounds
+ADD sounds /opt/music_line/sounds
 WORKDIR /opt/music_line
 
 RUN npm install express
