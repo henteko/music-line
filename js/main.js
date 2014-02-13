@@ -1,19 +1,6 @@
+var buffers = [];
 $(function() {
-  window.AudioContext = window.AudioContext||window.webkitAudioContext;
-  var context = new AudioContext();
-
-  var buffer;
-  var request = new XMLHttpRequest();
-  request.open('GET', '/sounds/tap.wav', true);
-  request.responseType = 'arraybuffer';
-
-  request.send();
-  request.onload = function () {
-    var res = request.response;
-    context.decodeAudioData(res, function (buf) {
-      buffer = buf;
-    });
-  };
+  var context = musicInit();
 
   var $canvas = $('#canvas');
   var canvas = $canvas[0];
@@ -30,33 +17,51 @@ $(function() {
   $canvas.mousedown(tapStart).mousemove(tapMove).mouseup(tapEnd);
   $canvas.on('touchstart', tapStart).on('touchmove', tapMove).on('touchend', tapEnd);
 
+  var currentLineWidth = 10;
+  var currentColor = "#000000";
+
+  $('#size').change(function() {
+    currentLineWidth = $(this).val();
+  });
+  $('#color').change(function() {
+     currentColor = $(this).val();
+  });
+
   function tapStart(e) {
     mouseFlag = true;
     x = e.clientX;
     y = e.clientY;
   }
 
+  var sumCount = 0;
   function tapMove(e) {
     if(mouseFlag) {
       sum += 1;
-    }
-    if(mouseFlag && sum > 2) {
-      var _x = e.clientX;
-      var _y = e.clientY;
-      cc.beginPath();
-      cc.moveTo(x,y);
-      cc.lineTo(_x,_y);
-      cc.stroke();
+      if(sum == 2) {
+        var _x = e.clientX;
+        var _y = e.clientY;
 
-      var source = context.createBufferSource();
-      source.buffer = buffer;
-      source.playbackRate.value = (x / 1000) + (y / 1000);
-      source.connect(context.destination);
-      source.noteOn(0);
+        //描画
+        cc.beginPath();
+        cc.lineWidth = currentLineWidth; //サイズの調整
+        cc.lineCap="round"; //円形に描画
+        cc.strokeStyle = currentColor; //色の設定
+        cc.moveTo(x,y);
+        cc.lineTo(_x,_y);
+        cc.stroke();
 
-      sum = 0;
-      x = _x;
-      y = _y;
+        var colorInt = parseInt(currentColor.replace('#', ''), 16);
+        // play sound
+        var source = context.createBufferSource();
+        source.buffer = buffers[colorInt % buffers.length];
+        source.playbackRate.value = lineDistance(x, y, _x, _y) / currentLineWidth;
+        source.connect(context.destination);
+        source.noteOn(0);
+
+        x = _x;
+        y = _y;
+        sum = 0;
+      }
     }
   }
 
@@ -64,3 +69,38 @@ $(function() {
     mouseFlag = false;
   }
 });
+
+function musicInit() {
+  window.AudioContext = window.AudioContext||window.webkitAudioContext;
+  var context = new AudioContext();
+  requestMusic('/sounds/C.wav', context);
+  requestMusic('/sounds/D.wav', context);
+  requestMusic('/sounds/E.wav', context);
+  requestMusic('/sounds/F.wav', context);
+  requestMusic('/sounds/G.wav', context);
+  requestMusic('/sounds/A.wav', context);
+  requestMusic('/sounds/B.wav', context);
+  return context;
+}
+
+function requestMusic(url, context) {
+  var request = new XMLHttpRequest();
+  request.open('GET', url, true);
+  request.responseType = 'arraybuffer';
+
+  request.send();
+  request.onload = function () {
+    var res = request.response;
+    context.decodeAudioData(res, function (buf) {
+      buffers.push(buf);
+    });
+  };
+}
+
+function lineDistance(x1,y1,x2,y2) {
+  var a, b, d;
+  a = x1 - x2;
+  b = y1 - y2;
+  d = Math.sqrt(Math.pow(a,2) + Math.pow(b,2));
+  return d;
+};
