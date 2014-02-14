@@ -4,6 +4,21 @@ $(function() {
   var piano = new Piano(context);
   var noises = piano.noises;
 
+  var fullData = {};
+  var dateTime = undefined;
+  $('#start').click(function() {
+    fullData = {};
+    dateTime = new DateTime();
+    $(this).hide();
+    $('#repeat').hide();
+    $('#end').show();
+  });
+  $('#end').click(function() {
+    $(this).hide();
+    $('#start').show();
+    $('#repeat').show();
+  }).hide();
+
   var $canvas = $('#canvas');
   var canvas = $canvas[0];
   var b = document.body;
@@ -11,6 +26,26 @@ $(function() {
   canvas.width = Math.max(b.clientWidth , b.scrollWidth, d.scrollWidth, d.clientWidth);
   canvas.height = Math.max(b.clientHeight , b.scrollHeight, d.scrollHeight, d.clientHeight);
   var cc = canvas.getContext('2d');
+
+  $('#repeat').click(function() {
+    //全て削除
+    cc.clearRect(0, 0, canvas.width, canvas.height);
+    //再生
+    $.each(fullData, function(time, data) {
+      var _time = parseInt(time);
+      setTimeout(function() {
+        var x = data['x'];
+        var y = data['y'];
+        var _x = data['_x'];
+        var _y = data['_y'];
+        var width = data['width'];
+        var color = data['color'];
+
+        lineWrite(cc, x, y, _x, _y, width, color);
+        playPiano(piano, x, y, _x, _y, width, color);
+      }, _time);
+    });
+  }).hide();
 
   var mouseFlag = false;
   var sum = 0;
@@ -26,7 +61,7 @@ $(function() {
     currentLineWidth = $(this).val();
   });
   $('#color').change(function() {
-     currentColor = $(this).val();
+    currentColor = $(this).val();
   });
 
   function tapStart(e) {
@@ -44,20 +79,20 @@ $(function() {
         var _y = e.clientY;
 
         //描画
-        cc.beginPath();
-        cc.lineWidth = currentLineWidth; //サイズの調整
-        cc.lineCap="round"; //円形に描画
-        cc.strokeStyle = currentColor; //色の設定
-        cc.moveTo(x,y);
-        cc.lineTo(_x,_y);
-        cc.stroke();
+        lineWrite(cc, x, y, _x, _y, currentLineWidth, currentColor);
+        //start sound
+        playPiano(piano, x, y, _x, _y, currentLineWidth, currentColor);
 
-        var colorInt = parseInt(currentColor.replace('#', ''), 16);
-        // play sound
-        var noise = noises[colorInt % noises.length];
-        piano.play(noise, {
-          'playbackRate': lineDistance(x, y, _x, _y) / currentLineWidth
-        });
+        if(dateTime != undefined) {
+          fullData[dateTime.getCurrentTime()] = {
+            'x': x,
+            'y': y,
+            '_x': _x,
+            '_y': _y,
+            'color': currentColor,
+            'width': currentLineWidth
+          };
+        }
 
         x = _x;
         y = _y;
@@ -70,6 +105,24 @@ $(function() {
     mouseFlag = false;
   }
 });
+
+function lineWrite(cc, x, y, _x, _y, width, color) {
+  cc.beginPath();
+  cc.lineWidth = width; //サイズの調整
+  cc.lineCap="round"; //円形に描画
+  cc.strokeStyle = color; //色の設定
+  cc.moveTo(x,y);
+  cc.lineTo(_x,_y);
+  cc.stroke();
+}
+
+function playPiano(piano, x, y, _x, _y, width, color) {
+  var colorInt = parseInt(color.replace('#', ''), 16);
+  var noise = piano.noises[parseInt(lineDistance(x, y, _x, _y)) % piano.noises.length];
+  piano.play(noise, {
+    'playbackRate': (colorInt % 1000) / width
+  });
+}
 
 function lineDistance(x1,y1,x2,y2) {
   var a, b, d;
