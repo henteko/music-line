@@ -1,6 +1,8 @@
-var buffers = [];
 $(function() {
-  var context = musicInit();
+  window.AudioContext = window.AudioContext||window.webkitAudioContext;
+  var context = new AudioContext();
+  var piano = new Piano(context);
+  var noises = piano.noises;
 
   var $canvas = $('#canvas');
   var canvas = $canvas[0];
@@ -52,11 +54,10 @@ $(function() {
 
         var colorInt = parseInt(currentColor.replace('#', ''), 16);
         // play sound
-        var source = context.createBufferSource();
-        source.buffer = buffers[colorInt % buffers.length];
-        source.playbackRate.value = lineDistance(x, y, _x, _y) / currentLineWidth;
-        source.connect(context.destination);
-        source.noteOn(0);
+        var noise = noises[colorInt % noises.length];
+        piano.play(noise, {
+          'playbackRate': lineDistance(x, y, _x, _y) / currentLineWidth
+        });
 
         x = _x;
         y = _y;
@@ -69,33 +70,6 @@ $(function() {
     mouseFlag = false;
   }
 });
-
-function musicInit() {
-  window.AudioContext = window.AudioContext||window.webkitAudioContext;
-  var context = new AudioContext();
-  requestMusic('/sounds/C.wav', context);
-  requestMusic('/sounds/D.wav', context);
-  requestMusic('/sounds/E.wav', context);
-  requestMusic('/sounds/F.wav', context);
-  requestMusic('/sounds/G.wav', context);
-  requestMusic('/sounds/A.wav', context);
-  requestMusic('/sounds/B.wav', context);
-  return context;
-}
-
-function requestMusic(url, context) {
-  var request = new XMLHttpRequest();
-  request.open('GET', url, true);
-  request.responseType = 'arraybuffer';
-
-  request.send();
-  request.onload = function () {
-    var res = request.response;
-    context.decodeAudioData(res, function (buf) {
-      buffers.push(buf);
-    });
-  };
-}
 
 function lineDistance(x1,y1,x2,y2) {
   var a, b, d;
