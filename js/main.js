@@ -1,8 +1,7 @@
 $(function() {
-  window.AudioContext = window.AudioContext||window.webkitAudioContext;
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
   var context = new AudioContext();
   var piano = new Piano(context);
-  var noises = piano.noises;
 
   var fullData = {};
   var dateTime = undefined;
@@ -52,7 +51,9 @@ $(function() {
   var x = 0;
   var y = 0;
   $canvas.mousedown(tapStart).mousemove(tapMove).mouseup(tapEnd);
-  $canvas.on('touchstart', tapStart).on('touchmove', tapMove).on('touchend', tapEnd);
+  $canvas[0].addEventListener('touchstart', tapStart);
+  $canvas[0].addEventListener('touchmove', tapMove);
+  $canvas[0].addEventListener('touchend', tapEnd);
 
   var currentLineWidth = 10;
   var currentColor = "#000000";
@@ -66,8 +67,8 @@ $(function() {
 
   function tapStart(e) {
     mouseFlag = true;
-    x = e.clientX;
-    y = e.clientY;
+    x = e.clientX || e.touches[0].clientX;
+    y = e.clientY || e.touches[0].clientY;
   }
 
   var sumCount = 0;
@@ -75,8 +76,8 @@ $(function() {
     if(mouseFlag) {
       sum += 1;
       if(sum == 2) {
-        var _x = e.clientX;
-        var _y = e.clientY;
+        var _x = e.clientX || e.touches[0].clientX;
+        var _y = e.clientY || e.touches[0].clientY;
 
         //描画
         lineWrite(cc, x, y, _x, _y, currentLineWidth, currentColor);
@@ -99,6 +100,7 @@ $(function() {
         sum = 0;
       }
     }
+    e.preventDefault();
   }
 
   function tapEnd(e) {
