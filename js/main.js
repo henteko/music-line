@@ -61,8 +61,8 @@ $(function() {
   $('#size').change(function() {
     currentLineWidth = $(this).val();
   });
-  $('#color').change(function() {
-    currentColor = $(this).val();
+  $('[id^=color]').click(function() {
+    currentColor = $(this).attr('data');
   });
 
   function tapStart(e) {
