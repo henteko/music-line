@@ -67,8 +67,8 @@ $(function() {
 
   function tapStart(e) {
     mouseFlag = true;
-    x = e.clientX || e.touches[0].clientX;
-    y = e.clientY || e.touches[0].clientY;
+    x = getClientX(e);
+    y = getClientY(e);
   }
 
   var sumCount = 0;
@@ -76,8 +76,8 @@ $(function() {
     if(mouseFlag) {
       sum += 1;
       if(sum == 2) {
-        var _x = e.clientX || e.touches[0].clientX;
-        var _y = e.clientY || e.touches[0].clientY;
+        var _x = getClientX(e);
+        var _y = getClientY(e);
 
         //描画
         lineWrite(cc, x, y, _x, _y, currentLineWidth, currentColor);
@@ -124,6 +124,13 @@ function playPiano(piano, x, y, _x, _y, width, color) {
   piano.play(noise, {
     'playbackRate': (colorInt % 1000) / width
   });
+}
+
+function getClientX(e) {
+  return (e.clientX || e.touches[0].clientX) - 10;
+}
+function getClientY(e) {
+  return (e.clientY || e.touches[0].clientY) - 30;
 }
 
 function lineDistance(x1,y1,x2,y2) {
